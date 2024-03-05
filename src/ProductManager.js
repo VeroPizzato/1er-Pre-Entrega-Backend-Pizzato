@@ -36,7 +36,7 @@ class ProductManager {
 
     getProducts = async () => {
         try {
-            this.#readProducts()
+            await this.#readProducts()
             return this.#products
         }
         catch (err) {
@@ -44,10 +44,11 @@ class ProductManager {
         }
     }
 
-    getProductById = async (id) => {
+    getProductById = (id) => {
         const codeIndex = this.#products.findIndex(e => e.id === id)
         if (codeIndex === -1) {
-            return (`Producto con ID: ${id} Not Found`)
+            console.error(`Producto con ID: ${id} Not Found`)
+            return
         } else {
             return this.#products[codeIndex]
         }
