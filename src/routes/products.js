@@ -7,25 +7,44 @@ const filename = `${__dirname}/../../productos.json`
 const productsManager = new ProductManager(filename)
 
 // Middleware para validacion de datos al agregar un producto (post)
-function validarNuevoProducto(req, res, next) {
-    const { titulo, descripcion, precio, ruta, codigo, stock, status, categoria } = req.body;
-    if (!titulo || !descripcion || !precio || !codigo || !stock || !status || !categoria) {
+async function validarNuevoProducto(req, res, next) {
+    const { title, description, price, thumbnail, code, stock, status, category } = req.body;
+
+    if (!title || !description || !price || !code || !status || !category) {
         return res.status(400).json({ error: 'Todos los campos son obligatorios, salvo la ruta de la imagen' });
     }
-    if (isNaN(precio) || isNaN(stock)) {
+    if (isNaN(price) || isNaN(stock)) {
         res.status(400).json({ error: "Invalid number format" })
         return
     }
-    const codeIndex = productsManager.getProducts.findIndex(e => e.code === codigo)
+    if (!Array.isArray(thumbnail)) {
+        res.status(400).json({ error: "El campo thumbnail es invalido." })
+        return
+    }
+    else {
+        let rutasValidas = true
+        thumbnail.forEach(ruta => {
+            if (typeof ruta != "string") {
+                rutasValidas = false;
+                return;              
+            }
+        })
+        if (!rutasValidas){
+            res.status(400).json({ error: "El campo thumbnail es invalido." })
+            return
+        }
+    }
+    const listadoProductos = await productsManager.getProducts()
+    const codeIndex = listadoProductos.findIndex(e => e.code === code)
     if (codeIndex !== -1) {
         res.status(400).json({ error: "Codigo ya existente" })
         return
     }
-    if (!productsManager.soloNumYletras(codigo)) {
+    if (!productsManager.soloNumYletras(code)) {
         res.status(400).json({ error: "El campo codigo identificador es invalido." })
         return
     }
-    if (status != true && status != false) {
+    if (typeof status != "boolean") {
         res.status(400).json({ error: "El campo status es invalido." })
         return
     }
@@ -34,39 +53,53 @@ function validarNuevoProducto(req, res, next) {
 
 // Middleware para validacion de datos al actualizar un producto (put)
 // Si algun dato es vacio no se actualiza
-function validarProdActualizado(req, res, next) {
-    const { newTitle, newDescription, newPrice, newThumbnail, newCode, newStock, newStatus, newCategory } = req.body;
-    const { prodId } = req.params.id
-    const codeIndex = productsManager.getProducts.findIndex(e => e.id === prodId);
+async function validarProdActualizado(req, res, next) {
+    const { title, description, price, thumbnail, code, stock, status, category } = req.body;
+    let idProd = +req.params.pid   
+
+    const listadoProductos = await productsManager.getProducts()
+    const codeIndex = listadoProductos.findIndex(e => e.id === idProd);
     if (codeIndex === -1) {
-        res.status(400).json({ error: "Producto con ID:" + prodId + " not Found" })
+        res.status(400).json({ error: "Producto con ID:" + idProd + " not Found" })
         return
     }
     else {
-        if (newPrice !== '') {
-            if (isNaN(newPrice)) {
+        if (price !== '') {
+            if (isNaN(price)) {
                 res.status(400).json({ error: "Error. El campo precio es invalido." })
                 return
             }
         }
-        if (newStock !== '') {
-            if (isNaN(newStock)) {
+        if (stock !== '') {
+            if (isNaN(stock)) {
                 res.status(400).json({ error: "El campo stock es invalido." })
                 return
             }
         }
-        if (newCode !== '') {
-            const existingCode = listadoProductos.findIndex(item => item.code === newCode);
-            if (existingCode !== -1) {
-                res.status(400).json({ error: "Codigo ya existente" })
+        if (!Array.isArray(thumbnail)) {
+            res.status(400).json({ error: "El campo thumbnail es invalido." })
+            return
+        }
+        else {
+            let rutasValidas = true
+            thumbnail.forEach(ruta => {
+                if (typeof ruta != "string") {
+                    rutasValidas = false;
+                    return;              
+                }
+            })
+            if (!rutasValidas){
+                res.status(400).json({ error: "El campo thumbnail es invalido." })
                 return
             }
-            if (!productsManager.soloNumYletras(newCode)) {
+        }
+        if (code !== '') {            
+            if (!productsManager.soloNumYletras(code)) {
                 res.status(400).json({ error: "El campo codigo identificador es invalido." })
                 return
             }
         }
-        if (newStatus != true && newStatus != false) {
+        if (typeof status != "boolean") {
             res.status(400).json({ error: "El campo status es invalido." })
             return
         }
@@ -122,18 +155,22 @@ router.put('/:pid', validarProdActualizado, async (req, res) => {
     const productID = +req.params.pid
     const producto = req.body
 
-    await manejadorDeProductos.updateProduct(productID, producto);
+    await productsManager.updateProduct(productID, producto);
 
     return res.status(200).json({ message: "Producto actualizado correctamente" });
 });
 
 router.delete('/:pid', async (req, res) => {
     let idProd = +req.params.pid;
-    let DelproductByID = await manejadorDeProductos.deleteProduct(idProd);
-    if (!DelproductByID) {
-        res.status(404).json({ error: "Id inexistente!" })  // HTTP 404 => el ID es válido, pero no se encontró ese producto
+    const listadoProductos = await productsManager.getProducts()
+    const codeIndex = listadoProductos.findIndex(e => e.id === idProd);
+    if (codeIndex === -1) {
+        res.status(400).json({ error: "Producto con ID:" + idProd + " not Found" })
         return
     }
+    else{
+        await productsManager.deleteProduct(idProd);
+    }   
     res.status(200).json({ message: "Producto Eliminado correctamente" })    // HTTP 200 OK
 });
 
