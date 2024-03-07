@@ -2,6 +2,7 @@ const fs = require('fs')
 
 class CartManager {
    
+    #carts
     static #ultimoIdCart = 1
 
     constructor(pathname) {
@@ -50,10 +51,20 @@ class CartManager {
         return id
     }
 
-    addCart = async (arrayCart) => {
+    async #updateCarts() {
+        const fileCarts = JSON.stringify(this.#carts, null, '\t')
+        await fs.promises.writeFile(this.path, fileCarts)
+    }
 
+    addCart = async (products) => {
+        const carrito = {
+            cid: this.#getNuevoId(),
+            products
+        }
 
+        this.#carts.push(carrito)
 
+        await this.#updateCarts()
     }
 
     getCartByCId = async (cid) => {
@@ -67,13 +78,30 @@ class CartManager {
     }
     
     addProductToCart = async (cid, pid, quantity) => {
+        let listadoProducts = [];
+        let productoNuevo = {
+            pid: pid,
+            quantity: quantity
+        }
 
+        const codeIndex = this.#carts.findIndex(e => e.cid === cid);
+        if (codeIndex === -1) {
+            console.error(`Carrito con ID: ${cid} Not Found`)
+            return
+        } else {
+            listadoProducts = this.#carts[codeIndex].products;
+            const codeProduIndex = listadoProducts.findIndex(e => e.pid === pid);
+            if (codeProduIndex === -1) {
+                productoNuevo.pid = pid;
+                productoNuevo.quantity = quantity;    
+                listadoProducts.push(productoNuevo);
+            } else {
+                listadoProducts[codeProduIndex].quantity += 1;
+            }
 
-
-
-    }
-
-    
+            await this.#updateCarts()
+        }
+    }    
 }
 
 module.exports = CartManager;
