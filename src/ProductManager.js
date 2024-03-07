@@ -65,6 +65,14 @@ class ProductManager {
         return (/^[a-z A-Z 0-9]+$/.test(code))
     }
 
+    soloNumPositivos = (code) => {
+        return (/^[0-9]+$/.test(code) && (code>0))
+    }
+
+    soloNumPositivosYcero = (code) => {
+        return (/^[0-9]+$/.test(code) && (code>=0))
+    }
+
     addProduct = async (title, description, price, thumbnail, code, stock, status, category) => {      
         const product = {
             id: this.#getNuevoId(),

@@ -17,6 +17,14 @@ async function validarNuevoProducto(req, res, next) {
         res.status(400).json({ error: "Invalid number format" })
         return
     }
+    if (!productsManager.soloNumPositivos(price)) {
+        res.status(400).json({ error: "Precio negativo" })
+        return
+    }
+    if (!productsManager.soloNumPositivosYcero(stock)) {
+        res.status(400).json({ error: "Stock negativo" })
+        return
+    }
     if (!Array.isArray(thumbnail)) {
         res.status(400).json({ error: "El campo thumbnail es invalido." })
         return
@@ -26,10 +34,10 @@ async function validarNuevoProducto(req, res, next) {
         thumbnail.forEach(ruta => {
             if (typeof ruta != "string") {
                 rutasValidas = false;
-                return;              
+                return;
             }
         })
-        if (!rutasValidas){
+        if (!rutasValidas) {
             res.status(400).json({ error: "El campo thumbnail es invalido." })
             return
         }
@@ -55,7 +63,7 @@ async function validarNuevoProducto(req, res, next) {
 // Si algun dato es vacio no se actualiza
 async function validarProdActualizado(req, res, next) {
     const { title, description, price, thumbnail, code, stock, status, category } = req.body;
-    let idProd = +req.params.pid   
+    let idProd = +req.params.pid
 
     const listadoProductos = await productsManager.getProducts()
     const codeIndex = listadoProductos.findIndex(e => e.id === idProd);
@@ -69,10 +77,18 @@ async function validarProdActualizado(req, res, next) {
                 res.status(400).json({ error: "Error. El campo precio es invalido." })
                 return
             }
+            if (!productsManager.soloNumPositivos(price)) {
+                res.status(400).json({ error: "Precio negativo" })
+                return
+            }
         }
         if (stock !== '') {
             if (isNaN(stock)) {
                 res.status(400).json({ error: "El campo stock es invalido." })
+                return
+            }
+            if (!productsManager.soloNumPositivosYcero(stock)) {
+                res.status(400).json({ error: "Precio negativo" })
                 return
             }
         }
@@ -85,15 +101,15 @@ async function validarProdActualizado(req, res, next) {
             thumbnail.forEach(ruta => {
                 if (typeof ruta != "string") {
                     rutasValidas = false;
-                    return;              
+                    return;
                 }
             })
-            if (!rutasValidas){
+            if (!rutasValidas) {
                 res.status(400).json({ error: "El campo thumbnail es invalido." })
                 return
             }
         }
-        if (code !== '') {            
+        if (code !== '') {
             if (!productsManager.soloNumYletras(code)) {
                 res.status(400).json({ error: "El campo codigo identificador es invalido." })
                 return
@@ -168,9 +184,9 @@ router.delete('/:pid', async (req, res) => {
         res.status(400).json({ error: "Producto con ID:" + idProd + " not Found" })
         return
     }
-    else{
+    else {
         await productsManager.deleteProduct(idProd);
-    }   
+    }
     res.status(200).json({ message: "Producto Eliminado correctamente" })    // HTTP 200 OK
 });
 

@@ -1,7 +1,7 @@
 const fs = require('fs')
 
 class CartManager {
-   
+
     #carts
     static #ultimoIdCart = 1
 
@@ -31,7 +31,7 @@ class CartManager {
             if (mayorID <= item.id)
                 mayorID = item.id
         });
-        mayorID = mayorID + 1   
+        mayorID = mayorID + 1
         return mayorID
     }
 
@@ -43,7 +43,7 @@ class CartManager {
         catch (err) {
             return []
         }
-    }   
+    }
 
     #getNuevoId() {
         const id = CartManager.#ultimoIdCart
@@ -76,32 +76,23 @@ class CartManager {
             return this.#carts[codeIndex]
         }
     }
-    
+
     addProductToCart = async (cid, pid, quantity) => {
         let listadoProducts = [];
-        let productoNuevo = {
-            pid: pid,
-            quantity: quantity
-        }
-
         const codeIndex = this.#carts.findIndex(e => e.cid === cid);
-        if (codeIndex === -1) {
-            console.error(`Carrito con ID: ${cid} Not Found`)
-            return
-        } else {
-            listadoProducts = this.#carts[codeIndex].products;
-            const codeProduIndex = listadoProducts.findIndex(e => e.pid === pid);
-            if (codeProduIndex === -1) {
-                productoNuevo.pid = pid;
-                productoNuevo.quantity = quantity;    
-                listadoProducts.push(productoNuevo);
-            } else {
-                listadoProducts[codeProduIndex].quantity += 1;
+        listadoProducts = this.#carts[codeIndex].products;
+        const codeProduIndex = listadoProducts.findIndex(e => e.pid === pid);
+        if (codeProduIndex === -1) {
+            let productoNuevo = {
+                pid: pid,
+                quantity: quantity
             }
-
-            await this.#updateCarts()
+            listadoProducts.push(productoNuevo);
+        } else {
+            listadoProducts[codeProduIndex].quantity += quantity;
         }
-    }    
-}
+        await this.#updateCarts()
+    }
+}   
 
 module.exports = CartManager;
