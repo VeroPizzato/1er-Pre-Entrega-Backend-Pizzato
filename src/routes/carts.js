@@ -13,11 +13,10 @@ const productsManager = new ProductManager(filenameProd)
 // Middleware para validacion de datos al agregar un carrito 
 async function validarNuevoCarrito(req, res, next) {
     const { products } = req.body;
-
-    const listadoProductos = await productsManager.getProducts()
+    
     products.forEach(producto => {      
-        const codeIndex = listadoProductos.findIndex(e => e.id === producto.id);
-        if (codeIndex === -1) {
+        const prod = productsManager.getProductById(producto.id);
+        if (!prod) {
             res.status(400).json({ error: "Producto con ID:" + producto.id + " not Found" })
             return
         }
@@ -31,11 +30,10 @@ async function validarNuevoCarrito(req, res, next) {
 }
 
 // Middleware para validacion de carrito existente 
-async function ValidarCarritoExistente(req, res, next) {  
-    let cId = +req.params.cid;  
-    const listadoCarritos = await carritoManager.getCarts()
-    const codeIndex = listadoCarritos.findIndex(e => e.id === cId);
-    if (codeIndex === -1) {
+async function ValidarCarritoExistente(req, res, next) { 
+    let cId = +req.params.cid; 
+    const cart = carritoManager.getCartByCId(cId);
+    if (!cart) {
         res.status(400).json({ error: "Carrito con ID:" + cId + " not Found" })
         return
     }
@@ -46,9 +44,8 @@ async function ValidarCarritoExistente(req, res, next) {
 // Middleware para validacion de producto existente 
 async function ValidarProductoExistente(req, res, next) {
     let pId = +req.params.pid;
-    const listadoProductos = await productsManager.getProducts()
-    const codeIndex = listadoProductos.findIndex(e => e.id === pId);
-    if (codeIndex === -1) {
+    const prod = productsManager.getProductById(pId)    
+    if (!prod) {
         res.status(400).json({ error: "Producto con ID:" + pId + " not Found" })
         return
     }
@@ -85,7 +82,7 @@ router.get('/:cid', async (req, res) => {
 router.post('/:cid/product/:pid', ValidarCarritoExistente, ValidarProductoExistente, async (req, res) => {   
     let idCart = +req.params.cid;
     let idProd = +req.params.pid;
-    let quantity = 1;   
+    let quantity = 1;       
 
     let nuevoProd = await carritoManager.addProductToCart(idCart, idProd, quantity);
    
@@ -93,6 +90,7 @@ router.post('/:cid/product/:pid', ValidarCarritoExistente, ValidarProductoExiste
 })
 
 const main = async () => {
+    await productsManager.inicialize()    
     await carritoManager.inicialize()
 }
 main()
