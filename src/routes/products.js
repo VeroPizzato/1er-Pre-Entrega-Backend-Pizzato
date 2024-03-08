@@ -3,10 +3,10 @@ const router = Router()
 
 const ProductManager = require('../ProductManager')
 
-const filename = `${__dirname}/../../productos.json`
-const productsManager = new ProductManager(filename)
+const filenameProd = `${__dirname}/../../productos.json`
+const productsManager = new ProductManager(filenameProd)
 
-// Middleware para validacion de datos al agregar un producto (post)
+// Middleware para validacion de datos al agregar un producto 
 async function validarNuevoProducto(req, res, next) {
     const { title, description, price, thumbnail, code, stock, status, category } = req.body;
 
@@ -59,7 +59,7 @@ async function validarNuevoProducto(req, res, next) {
     next()
 }
 
-// Middleware para validacion de datos al actualizar un producto (put)
+// Middleware para validacion de datos al actualizar un producto 
 // Si algun dato es vacio no se actualiza
 async function validarProdActualizado(req, res, next) {
     const { title, description, price, thumbnail, code, stock, status, category } = req.body;

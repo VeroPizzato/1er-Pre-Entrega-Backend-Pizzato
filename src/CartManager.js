@@ -58,7 +58,7 @@ class CartManager {
 
     addCart = async (products) => {
         const carrito = {
-            cid: this.#getNuevoId(),
+            id: this.#getNuevoId(),
             products
         }
 
@@ -68,7 +68,7 @@ class CartManager {
     }
 
     getCartByCId = async (cid) => {
-        const codeIndex = this.#carts.findIndex(e => e.cid === cid)
+        const codeIndex = this.#carts.findIndex(e => e.id === cid)
         if (codeIndex === -1) {
             console.error(`Carrito con ID: ${cid} Not Found`)
             return
@@ -79,12 +79,12 @@ class CartManager {
 
     addProductToCart = async (cid, pid, quantity) => {
         let listadoProducts = [];
-        const codeIndex = this.#carts.findIndex(e => e.cid === cid);
+        const codeIndex = this.#carts.findIndex(e => e.id === cid);
         listadoProducts = this.#carts[codeIndex].products;
-        const codeProduIndex = listadoProducts.findIndex(e => e.pid === pid);
+        const codeProduIndex = listadoProducts.findIndex(e => e.id === pid);
         if (codeProduIndex === -1) {
             let productoNuevo = {
-                pid: pid,
+                id: pid,
                 quantity: quantity
             }
             listadoProducts.push(productoNuevo);

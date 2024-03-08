@@ -4,20 +4,21 @@ const router = Router();
 const CartManager = require('../CartManager');
 const ProductManager = require('../ProductManager')
 
-const filename = `${__dirname}/../../carrito.json`
-const carritoManager = new CartManager(filename)
+const filenameCart = `${__dirname}/../../carrito.json`
+const carritoManager = new CartManager(filenameCart)
 
-const productsManager = new ProductManager(`${__dirname}/../../productos.json`)
+const filenameProd = `${__dirname}/../../productos.json`
+const productsManager = new ProductManager(filenameProd)
 
-// Middleware para validacion de datos al agregar un carrito (post)
+// Middleware para validacion de datos al agregar un carrito 
 async function validarNuevoCarrito(req, res, next) {
     const { products } = req.body;
 
     const listadoProductos = await productsManager.getProducts()
     products.forEach(producto => {      
-        const codeIndex = listadoProductos.findIndex(e => e.pid === producto.pid);
+        const codeIndex = listadoProductos.findIndex(e => e.id === producto.id);
         if (codeIndex === -1) {
-            res.status(400).json({ error: "Producto con ID:" + producto.pid + " not Found" })
+            res.status(400).json({ error: "Producto con ID:" + producto.id + " not Found" })
             return
         }
         if (isNaN(producto.quantity) || (!productsManager.soloNumPositivos(producto.quantity))) {
@@ -29,11 +30,11 @@ async function validarNuevoCarrito(req, res, next) {
     next()
 }
 
-// Middleware para validacion de carrito existente (post)
+// Middleware para validacion de carrito existente 
 async function ValidarCarritoExistente(req, res, next) {  
     let cId = +req.params.cid;  
-    const listadoCarritos = await carritoManager.getProducts()
-    const codeIndex = listadoCarritos.findIndex(e => e.cid === cId);
+    const listadoCarritos = await carritoManager.getCarts()
+    const codeIndex = listadoCarritos.findIndex(e => e.id === cId);
     if (codeIndex === -1) {
         res.status(400).json({ error: "Carrito con ID:" + cId + " not Found" })
         return
@@ -42,11 +43,11 @@ async function ValidarCarritoExistente(req, res, next) {
     next()
 }
 
-// Middleware para validacion de producto existente (post)
+// Middleware para validacion de producto existente 
 async function ValidarProductoExistente(req, res, next) {
     let pId = +req.params.pid;
     const listadoProductos = await productsManager.getProducts()
-    const codeIndex = listadoProductos.findIndex(e => e.pid === pId);
+    const codeIndex = listadoProductos.findIndex(e => e.id === pId);
     if (codeIndex === -1) {
         res.status(400).json({ error: "Producto con ID:" + pId + " not Found" })
         return
@@ -56,12 +57,12 @@ async function ValidarProductoExistente(req, res, next) {
 }
 
 router.post('/', validarNuevoCarrito, async (req, res) => {
-    const { products } = req.body;
-
+    const { products } = req.body; 
+  
     const nuevoCarrito = await carritoManager.addCart(products);
     
     res.status(201).json({ message: "Carrito agregado correctamente", carrito: nuevoCarrito })
-})
+ })
 
 router.get('/:cid', async (req, res) => {
     let cidCart = +req.params.cid;
